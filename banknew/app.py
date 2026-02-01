@@ -169,11 +169,10 @@ def signup():
     return render_template('signup.html')
 
 
-if __name__ == '__main__':
-    # Read production configuration from environment variables
-    host = os.environ.get('HOST', '127.0.0.1')
-    port = int(os.environ.get('PORT', 5000))
-    debug = os.environ.get('FLASK_DEBUG', '0') == '1'
-    # Allow overriding the secret key via env var in production
+if __name__ == "__main__":
     app.secret_key = os.environ.get('SECRET_KEY', app.secret_key)
-    app.run(host=host, port=port, debug=debug)
+    app.run(
+        host="0.0.0.0",
+        port=int(os.environ.get("PORT", 10000)),
+        debug=False
+    )
