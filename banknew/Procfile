@@ -1,1 +1,1 @@
-web: gunicorn banknew.app:app
+web: python app.py
