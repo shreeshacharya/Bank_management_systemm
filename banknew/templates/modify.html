@@ -1,0 +1,31 @@
+<!-- templates/modify.html -->
+
+<h2>Modify Account</h2>
+
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <ul class="flashes">
+      {% for message in messages %}
+        <li>{{ message }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+{% endwith %}
+
+{% if account %}
+  <!-- Modification form -->
+  <form method="POST">
+    <input type="hidden" name="accNo" value="{{ account.accNo }}">
+    <input type="hidden" name="update" value="1">
+    Name: <input type="text" name="name" value="{{ account.name }}" required><br>
+    Type (C/S): <input type="text" name="type" value="{{ account.type }}" required><br>
+    Deposit: <input type="number" name="deposit" value="{{ account.deposit }}" required><br>
+    <input type="submit" value="Update Account">
+  </form>
+{% else %}
+  <!-- Initial account lookup form -->
+  <form method="POST">
+    Enter Account Number: <input type="number" name="accNo" required>
+    <input type="submit" value="Find Account">
+  </form>
+{% endif %}

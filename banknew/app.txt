@@ -1,0 +1,288 @@
+from flask import Flask, render_template, request, redirect, url_for, flash
+import bank_backend as bb
+import pathlib
+import pickle
+import os
+from flask import session
+from functools import wraps
+import json
+
+
+
+app = Flask(__name__)
+app.secret_key = "bank_secret_key"
+
+def load_users():
+    with open('users.json', 'r') as f:
+        return json.load(f)
+
+def save_users(users):
+    with open('users.json', 'w') as f:
+        json.dump(users, f, indent=4)
+
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'username' not in session:
+            flash("Please log in to access this page.")
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+@app.route('/')
+def index():
+    return render_template('index.html')
+
+@app.route('/create', methods=['GET', 'POST'])
+@login_required   # 👈 Add this line here
+
+def create():
+    if request.method == 'POST':
+        acc = bb.Account()
+        acc.accNo = int(request.form['accNo'])
+        acc.name = request.form['name']
+        acc.type = request.form['type']
+        acc.deposit = int(request.form['deposit'])
+
+        if (acc.type == 'S' and acc.deposit < 500) or (acc.type == 'C' and acc.deposit < 1000):
+            flash("Initial deposit too low!")
+            return redirect(url_for('create'))
+
+        bb.writeAccountsFile(acc)
+        flash("Account created successfully!")
+        return redirect(url_for('index'))
+
+    return render_template('create.html')
+
+@app.route('/accounts')
+@login_required
+
+def accounts():
+    data = []
+    file = pathlib.Path("accounts.data")
+    if file.exists():
+        with open('accounts.data', 'rb') as f:
+            data = pickle.load(f)
+    return render_template('accounts.html', accounts=data)
+
+@app.route('/balance', methods=['GET', 'POST'])
+@login_required
+
+def balance():
+    result = None
+    if request.method == 'POST':
+        accNo = int(request.form['accNo'])
+        file = pathlib.Path("accounts.data")
+        if file.exists():
+            with open('accounts.data', 'rb') as f:
+                data = pickle.load(f)
+                for acc in data:
+                    if acc.accNo == accNo:
+                        result = acc.deposit
+                        break
+                else:
+                    flash("Account not found.")
+    return render_template('balance.html', result=result)
+
+@app.route('/deposit', methods=['GET', 'POST'])
+@login_required
+
+def deposit():
+    if request.method == 'POST':
+        accNo = int(request.form['accNo'])
+        amount = int(request.form['amount'])
+        try:
+            bb.depositAndWithdraw(accNo, 1, amount)
+            flash("Amount deposited.")
+        except Exception as e:
+            flash(str(e))
+        return redirect(url_for('index'))
+    return render_template('deposit.html')
+
+
+@app.route('/withdraw', methods=['GET', 'POST'])
+@login_required
+
+def withdraw():
+    if request.method == 'POST':
+        accNo = int(request.form['accNo'])
+        amount = int(request.form['amount'])
+        try:
+            bb.depositAndWithdraw(accNo, 2, amount)
+            flash("Amount withdrawn.")
+        except Exception as e:
+            flash(str(e))
+        return redirect(url_for('index'))
+    return render_template('withdraw.html')
+
+
+@app.route('/delete', methods=['GET', 'POST'])
+@login_required
+
+def delete():
+    if request.method == 'POST':
+        accNo = int(request.form['accNo'])
+        bb.deleteAccount(accNo)
+        flash("Account deleted.")
+        return redirect(url_for('index'))
+    return render_template('delete.html')
+
+
+@app.route('/modify', methods=['GET', 'POST'])
+@login_required
+
+def modify():
+    file = pathlib.Path("accounts.data")
+    account = None
+
+    if request.method == 'POST':
+        accNo = int(request.form['accNo'])
+
+        if 'update' in request.form:
+            # This is the actual update submission
+            name = request.form['name']
+            acc_type = request.form['type']
+            deposit = int(request.form['deposit'])
+
+            with open('accounts.data', 'rb') as infile:
+                accounts = pickle.load(infile)
+
+            for acc in accounts:
+                if acc.accNo == accNo:
+                    acc.name = name
+                    acc.type = acc_type
+                    acc.deposit = deposit
+                    break
+
+            with open('accounts.data', 'wb') as outfile:
+                pickle.dump(accounts, outfile)
+
+            flash("Account updated successfully!")
+            return redirect(url_for('index'))
+
+        else:
+            # This is the initial lookup for an account
+            if file.exists():
+                with open('accounts.data', 'rb') as infile:
+                    accounts = pickle.load(infile)
+
+                for acc in accounts:
+                    if acc.accNo == accNo:
+                        account = acc
+                        break
+
+                if not account:
+                    flash("Account not found.")
+            else:
+                flash("No account data file exists.")
+
+    return render_template('modify.html', account=account)
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        users = load_users()
+        for user in users:
+            if user['username'] == username and user['password'] == password:
+                session['username'] = username
+                flash("Logged in successfully!")
+                return redirect(url_for('index'))
+
+        flash("Invalid username or password.")
+        return redirect(url_for('login'))
+
+    return render_template('login.html')
+
+
+@app.route('/signup', methods=['GET', 'POST'])
+def signup():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+
+        users = load_users()
+        for user in users:
+            if user['username'] == username:
+                flash("Username already exists!")
+                return redirect(url_for('signup'))
+
+        users.append({'username': username, 'password': password})
+        save_users(users)
+        flash("Signup successful! Please log in.")
+        return redirect(url_for('login'))
+
+    return render_template('signup.html')
+
+
+@app.route('/logout')
+def logout():
+    session.pop('username', None)
+    flash("Logged out successfully.")
+    return redirect(url_for('login'))
+
+
+@app.route('/forgot-password', methods=['GET', 'POST'])
+def forgot_password():
+    if request.method == 'POST':
+        username = request.form['username']
+        new_password = request.form['new_password']
+
+        users = load_users()
+        for user in users:
+            if user['username'] == username:
+                user['password'] = new_password
+                save_users(users)
+                flash("Password reset successful! Please log in.")
+                return redirect(url_for('login'))
+
+        flash("Username not found.")
+        return redirect(url_for('forgot_password'))
+
+    return render_template('forgot_password.html')
+
+
+
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    import pickle
+    import pathlib
+
+    total_accounts = 0
+    total_balance = 0
+    saving_count = 0
+    current_count = 0
+
+    file = pathlib.Path("accounts.data")
+    if file.exists():
+        with open('accounts.data', 'rb') as f:
+            data = pickle.load(f)
+            total_accounts = len(data)
+            for acc in data:
+                total_balance += acc.deposit
+                if acc.type == 'S':
+                    saving_count += 1
+                elif acc.type == 'C':
+                    current_count += 1
+
+    return render_template('dashboard.html',
+                           total_accounts=total_accounts,
+                           total_balance=total_balance,
+                           saving_count=saving_count,
+                           current_count=current_count)
+
+
+
+
+
+
+
+
+if __name__ == "__main__":
+    app.run(debug=True)

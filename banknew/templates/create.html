@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+{% block content %}
+<h2>Create New Account</h2>
+<form method="post">
+    <label>Account No:</label><br>
+    <input type="number" name="accNo" required><br>
+    <label>Name:</label><br>
+    <input type="text" name="name" required><br>
+    <label>Type:</label><br>
+    <select name="type">
+        <option value="S">Saving</option>
+        <option value="C">Current</option>
+    </select><br>
+    <label>Initial Deposit:</label><br>
+    <input type="number" name="deposit" required><br><br>
+    <input type="submit" value="Create Account">
+</form>
+{% endblock %}

@@ -1,0 +1,11 @@
+{% extends "layout.html" %}
+{% block content %}
+<h2>Deposit Amount</h2>
+<form method="post">
+    <label>Account No:</label><br>
+    <input type="number" name="accNo" required><br>
+    <label>Amount:</label><br>
+    <input type="number" name="amount" required><br><br>
+    <input type="submit" value="Deposit">
+</form>
+{% endblock %}

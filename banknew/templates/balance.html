@@ -1,0 +1,13 @@
+{% extends "layout.html" %}
+{% block content %}
+<h2>Balance Enquiry</h2>
+<form method="post">
+    <label>Account No:</label><br>
+    <input type="number" name="accNo" required><br><br>
+    <input type="submit" value="Check Balance">
+</form>
+
+{% if result is not none %}
+    <p><strong>Balance:</strong> ₹{{ result }}</p>
+{% endif %}
+{% endblock %}

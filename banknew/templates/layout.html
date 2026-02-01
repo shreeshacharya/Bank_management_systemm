@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Bank Management System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>🏦 Bank Management System</h1>
+        <nav>
+            <a href="/">Home</a> |
+            <a href="/create">Create</a> |
+            <a href="/deposit">Deposit</a> |
+            <a href="/withdraw">Withdraw</a> |
+            <a href="/balance">Balance</a> |
+            <a href="/accounts">Accounts</a> |
+            <a href="/modify">Modify</a> |
+            <a href="/delete">Delete</a>
+        </nav>
+        <hr>
+        {% with messages = get_flashed_messages() %}
+          {% if messages %}
+            <ul class="flashes">
+              {% for message in messages %}
+                <li>{{ message }}</li>
+              {% endfor %}
+            </ul>
+          {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </div>
+</body>
+</html>

@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+{% block content %}
+<h2>Welcome to the Bank System</h2>
+<a href="{{ url_for('dashboard') }}" style="padding:10px 20px; background:#2c5364; color:white; border-radius:6px; text-decoration:none;">
+    📊 View Dashboard
+</a>
+
+
+<p>Select an option from the menu above.</p>
+{% endblock %}
+{% if session.get('username') %}
+  <p>Welcome, {{ session['username'] }} |
+     <a href="{{ url_for('logout') }}">Logout</a></p>
+{% else %}
+  <p><a href="{{ url_for('login') }}">Login</a></p>
+{% endif %}
+
+

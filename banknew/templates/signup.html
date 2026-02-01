@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bank Signup</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            margin: 0;
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(to right, #2c5364, #203a43, #0f2027);
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+        }
+        .signup-box {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.2);
+            width: 320px;
+            backdrop-filter: blur(10px);
+        }
+        .signup-box h2 {
+            margin-bottom: 20px;
+            text-align: center;
+            font-weight: 500;
+        }
+        .signup-box input[type="text"],
+        .signup-box input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 8px;
+            background: #fff;
+            color: #000;
+            font-size: 14px;
+        }
+        .signup-box button {
+            width: 100%;
+            padding: 12px;
+            background: #00b894;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 15px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .signup-box button:hover {
+            background: #019870;
+        }
+        .signup-box p {
+            margin-top: 15px;
+            text-align: center;
+            font-size: 14px;
+        }
+        .signup-box a {
+            color: #00cec9;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="signup-box">
+        <h2>Create Your Account</h2>
+        <form method="POST">
+            <input type="text" name="username" placeholder="Username" required />
+            <input type="password" name="password" placeholder="Password" required />
+            <button type="submit">Sign Up</button>
+        </form>
+        <p>Already registered? <a href="{{ url_for('login') }}">Login here</a></p>
+    </div>
+</body>
+</html>
